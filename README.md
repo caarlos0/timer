@@ -1,12 +1,17 @@
-# timer
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/245435/154816573-b0fa49a2-5e5a-49ed-b65e-a12915dfc68b.gif" alt="timer running" height="300" />
+  <h1 align="center">timer</h1>
+  <p align="center">A <code>sleep</code> with progress.</p>
+</p>
 
-Timer a small CLI, similar to the `sleep` everyone already know and love, but with some extra features:
+---
+
+Timer is a small CLI, similar to the `sleep` everyone already knows and love, 
+with a couple of extra features:
 
 - a progress bar indicating the progression of said timer
 - a timer showing how much time is left
 - named timers
-
-![timer running](https://user-images.githubusercontent.com/245435/154815986-1712f713-9015-4af2-8aae-938e7dca9736.gif)
 
 ## Usage
 
