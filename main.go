@@ -42,6 +42,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 		return m, tea.Batch(cmds...)
 
+	case tea.WindowSizeMsg:
+		m.progress.Width = msg.Width - padding*2 - 4
+		if m.progress.Width > maxWidth {
+			m.progress.Width = maxWidth
+		}
+		return m, nil
+
 	case timer.StartStopMsg:
 		var cmd tea.Cmd
 		m.timer, cmd = m.timer.Update(msg)
@@ -69,18 +76,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 var boldStyle = lipgloss.NewStyle().Bold(true)
 var italicStyle = lipgloss.NewStyle().Italic(true)
 
+const (
+	padding  = 2
+	maxWidth = 80
+)
+
 func (m model) View() string {
 	if m.quitting {
 		return "\n"
 	}
 
-	return boldStyle.Render(m.start.Format(time.Kitchen)) +
-		": " +
-		italicStyle.Render(m.name) +
-		" - " +
-		boldStyle.Render(m.timer.View()) +
-		" " +
-		m.progress.View()
+	result := boldStyle.Render(m.start.Format(time.Kitchen))
+	if m.name != "" {
+		result += ": " + italicStyle.Render(m.name)
+	}
+	result += " - " + boldStyle.Render(m.timer.View()) + "\n" + m.progress.View()
+	return result
 }
 
 var timerFor = flag.Duration("for", 50*time.Minute, "how log the timer should go")
