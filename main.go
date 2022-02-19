@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"time"
@@ -11,10 +10,14 @@ import (
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/coral"
+	mcoral "github.com/muesli/mango-coral"
+	"github.com/muesli/roff"
 )
 
 type model struct {
 	name     string
+	duration time.Duration
 	start    time.Time
 	timer    timer.Model
 	progress progress.Model
@@ -31,7 +34,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmds []tea.Cmd
 		var cmd tea.Cmd
 
-		step := 100.0 / (*timerFor).Seconds()
+		step := 100.0 / (m.duration).Seconds()
 
 		cmds = append(cmds, m.progress.IncrPercent(step/100.0))
 		// pm, cmd := m.progress.Update(msg)
@@ -73,14 +76,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-var boldStyle = lipgloss.NewStyle().Bold(true)
-var italicStyle = lipgloss.NewStyle().Italic(true)
-
-const (
-	padding  = 2
-	maxWidth = 80
-)
-
 func (m model) View() string {
 	if m.quitting {
 		return "\n"
@@ -94,25 +89,70 @@ func (m model) View() string {
 	return result
 }
 
-var timerFor = flag.Duration("for", 50*time.Minute, "how log the timer should go")
-var name = flag.String("name", "", "name this timer")
+var (
+	name     string
+	version  = "dev"
+	quitKeys = key.NewBinding(
+		key.WithKeys("q", "ctrl+c"),
+		key.WithHelp("q", "quit"),
+	)
+	boldStyle   = lipgloss.NewStyle().Bold(true)
+	italicStyle = lipgloss.NewStyle().Italic(true)
+)
+
+const (
+	padding  = 2
+	maxWidth = 80
+)
+
+var rootCmd = &coral.Command{
+	Use:          "timer",
+	Short:        "timer is like sleep, but with progress report",
+	Version:      version,
+	SilenceUsage: true,
+	Args:         coral.ExactArgs(1),
+	RunE: func(cmd *coral.Command, args []string) error {
+		duration, err := time.ParseDuration(args[0])
+		if err != nil {
+			return err
+		}
+		m := model{
+			duration: duration,
+			timer:    timer.NewWithInterval(duration, time.Second),
+			progress: progress.New(progress.WithDefaultGradient()),
+			name:     name,
+			start:    time.Now(),
+		}
+		return tea.NewProgram(m).Start()
+	},
+}
+
+var manCmd = &coral.Command{
+	Use:                   "man",
+	Short:                 "Generates man pages",
+	SilenceUsage:          true,
+	DisableFlagsInUseLine: true,
+	Hidden:                true,
+	Args:                  coral.NoArgs,
+	RunE: func(cmd *coral.Command, args []string) error {
+		manPage, err := mcoral.NewManPage(1, rootCmd)
+		if err != nil {
+			return err
+		}
+
+		_, err = fmt.Fprint(os.Stdout, manPage.Build(roff.NewDocument()))
+		return err
+	},
+}
+
+func init() {
+	rootCmd.Flags().StringVarP(&name, "name", "n", "", "timer name")
+
+	rootCmd.AddCommand(manCmd)
+}
 
 func main() {
-	flag.Parse()
-	m := model{
-		timer:    timer.NewWithInterval(*timerFor, time.Second),
-		progress: progress.New(progress.WithDefaultGradient()),
-		name:     *name,
-		start:    time.Now(),
-	}
-
-	if err := tea.NewProgram(m).Start(); err != nil {
-		fmt.Println("Uh oh, we encountered an error:", err)
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
-
-var quitKeys = key.NewBinding(
-	key.WithKeys("q", "ctrl+c"),
-	key.WithHelp("q", "quit"),
-)
