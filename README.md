@@ -30,6 +30,12 @@ timer --help
 brew install caarlos0/tap/timer
 ```
 
+**macports**:
+
+```sh
+sudo port install timer
+```
+
 **snap**:
 
 ```sh
