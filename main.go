@@ -21,18 +21,17 @@ import (
 )
 
 type model struct {
-	pomodoros []pomodoro
+	pomodoros []*pomodoro
 	current   int
 	loops     int
 	runs      []string
 	start     time.Time
-	timer     timer.Model
-	progress  progress.Model
 	quitting  bool
 }
 
 func (m model) Init() tea.Cmd {
-	return m.timer.Init()
+	m.pomodoros[0].reset()
+	return m.pomodoros[0].init()
 }
 
 type nextPomodoroMsg struct {
@@ -92,45 +91,46 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case timer.TickMsg:
 		var cmds []tea.Cmd
-
 		d := m.pomodoros[m.current].Duration.Seconds()
 		step := 100.0 / d
-		pct := step * (d - m.timer.Timeout.Seconds())
-		cmds = append(cmds, m.progress.SetPercent(pct/100.0))
+		pct := step * (d - m.pomodoros[m.current].Timer.Timeout.Seconds())
+		cmds = append(cmds, m.pomodoros[m.current].Progress.SetPercent(pct/100.0))
 
 		var cmd tea.Cmd
-		m.timer, cmd = m.timer.Update(msg)
+		m.pomodoros[m.current].Timer, cmd = m.pomodoros[m.current].Timer.Update(msg)
 		cmds = append(cmds, cmd)
 		return m, tea.Batch(cmds...)
 
 	case tea.WindowSizeMsg:
-		m.progress.Width = msg.Width - padding*2 - 4
-		if m.progress.Width > maxWidth {
-			m.progress.Width = maxWidth
+		m.pomodoros[m.current].Progress.Width = msg.Width - padding*2 - 4
+		if m.pomodoros[m.current].Progress.Width > maxWidth {
+			m.pomodoros[m.current].Progress.Width = maxWidth
 		}
 		return m, nil
 
 	case timer.StartStopMsg:
 		var cmd tea.Cmd
-		m.timer, cmd = m.timer.Update(msg)
+		m.pomodoros[m.current].Timer, cmd = m.pomodoros[m.current].Timer.Update(msg)
 		return m, cmd
 
 	case timer.TimeoutMsg:
 		return m, m.nextPomodoroCmd()
 
 	case nextPomodoroMsg:
+		previous := m.current
 		m.current = msg.seq
 		m.loops = msg.loops
 		if m.loops == 0 {
 			m.quitting = true
 			return m, tea.Quit
 		}
-		m.timer = m.pomodoros[m.current].newTimer()
-		return m, m.timer.Init()
+		m.pomodoros[m.current].reset()
+		m.pomodoros[m.current].Progress.Width = m.pomodoros[previous].Progress.Width
+		return m, m.pomodoros[m.current].init()
 
 	case progress.FrameMsg:
-		progressModel, cmd := m.progress.Update(msg)
-		m.progress = progressModel.(progress.Model)
+		progressModel, cmd := m.pomodoros[m.current].Progress.Update(msg)
+		m.pomodoros[m.current].Progress = progressModel.(progress.Model)
 		return m, cmd
 
 	case tea.KeyMsg:
@@ -148,15 +148,19 @@ func (m model) View() string {
 		return "all done!\n"
 	}
 
+	p := m.pomodoros[m.current]
+
 	result := boldStyle.Render(m.start.Format(time.Kitchen))
-	result += ": " + italicStyle.Render(m.pomodoros[m.current].Name)
-	result += " - " + boldStyle.Render(m.timer.View()) + "\n" + m.progress.View()
+	result += ": " + italicStyle.Render(p.Name)
+	result += " - " + boldStyle.Render(p.Timer.View()) + "\n" + p.Progress.View()
 	return result
 }
 
 type pomodoro struct {
 	Name     string
 	Duration time.Duration
+	Timer    timer.Model
+	Progress progress.Model
 }
 
 var (
@@ -174,8 +178,13 @@ const (
 	maxWidth = 80
 )
 
-func (p pomodoro) newTimer() timer.Model {
-	return timer.NewWithInterval(p.Duration, time.Second)
+func (p *pomodoro) reset() {
+	p.Timer = timer.NewWithInterval(p.Duration, time.Second)
+	p.Progress = progress.New(progress.WithDefaultGradient())
+}
+
+func (p *pomodoro) init() tea.Cmd {
+	return tea.Batch(p.Timer.Start(), p.Progress.SetPercent(0))
 }
 
 func init() {
@@ -229,7 +238,7 @@ All these options should give you a quite a bit of possibilities.
 		SilenceUsage: true,
 		Args:         coral.ArbitraryArgs,
 		RunE: func(cmd *coral.Command, args []string) error {
-			var pomodoros []pomodoro
+			var pomodoros []*pomodoro
 			for _, arg := range args {
 				parts := strings.SplitN(arg, "=", 2)
 
@@ -245,7 +254,7 @@ All these options should give you a quite a bit of possibilities.
 					return fmt.Errorf("invalid arg: %q: %w", arg, err)
 				}
 
-				pomodoros = append(pomodoros, pomodoro{
+				pomodoros = append(pomodoros, &pomodoro{
 					Name:     parts[0],
 					Duration: d,
 				})
@@ -255,11 +264,8 @@ All these options should give you a quite a bit of possibilities.
 				return fmt.Errorf("need to pass the timers in the format name=duration, for example, pomodoro work=25m rest=5m")
 			}
 
-			first := pomodoros[0]
 			m := model{
-				timer:     first.newTimer(),
 				current:   0,
-				progress:  progress.New(progress.WithDefaultGradient()),
 				pomodoros: pomodoros,
 				start:     time.Now(),
 				loops:     loops,

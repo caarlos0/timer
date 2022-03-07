@@ -1,4 +1,6 @@
 github.com/atotto/clipboard v0.1.4/go.mod h1:ZY9tmq7sm5xIbd9bOK4onWV4S6X0u6GY7Vn0Yu86PYI=
+github.com/caarlos0/go-shellwords v1.0.12 h1:HWrUnu6lGbWfrDcFiHcZiwOLzHWjjrPVehULaTFgPp8=
+github.com/caarlos0/go-shellwords v1.0.12/go.mod h1:bYeeX1GrTLPl5cAMYEzdm272qdsQAZiaHgeF0KTk1Gw=
 github.com/charmbracelet/bubbles v0.10.3 h1:fKarbRaObLn/DCsZO4Y3vKCwRUzynQD9L+gGev1E/ho=
 github.com/charmbracelet/bubbles v0.10.3/go.mod h1:jOA+DUF1rjZm7gZHcNyIVW+YrBPALKfpGVdJu8UiJsA=
 github.com/charmbracelet/bubbletea v0.19.3/go.mod h1:VuXF2pToRxDUHcBUcPmCRUHRvFATM4Ckb/ql1rBl3KA=
