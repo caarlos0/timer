@@ -6,7 +6,7 @@
 
 ---
 
-Timer is a small CLI, similar to the `sleep` everyone already knows and love, 
+Timer is a small CLI, similar to the `sleep` everyone already knows and love,
 with a couple of extra features:
 
 - a progress bar indicating the progression of said timer
@@ -21,6 +21,11 @@ timer -n <name> <duration>
 man timer
 timer --help
 ```
+
+It is possible to pass a time unit for `<duration>`.
+
+Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+If no unit is passed, it defaults to seconds ("s").
 
 ## Install
 
