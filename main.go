@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -112,6 +113,7 @@ var rootCmd = &coral.Command{
 	SilenceUsage: true,
 	Args:         coral.ExactArgs(1),
 	RunE: func(cmd *coral.Command, args []string) error {
+		addSuffixIfArgIsNumber(&(args[0]), "s")
 		duration, err := time.ParseDuration(args[0])
 		if err != nil {
 			return err
@@ -154,5 +156,12 @@ func init() {
 func main() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
+	}
+}
+
+func addSuffixIfArgIsNumber(s *string, suffix string) {
+	_, err := strconv.ParseFloat(*s, 64)
+	if err == nil {
+		*s = *s + suffix
 	}
 }
