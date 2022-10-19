@@ -41,7 +41,7 @@ jobs:
           go mod tidy
           go test -v ./...
           go build -o timer .
-      - uses: sigstore/cosign-installer@v2.8.0
+      - uses: sigstore/cosign-installer@v2.8.1
       -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v3
