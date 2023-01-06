@@ -72,6 +72,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		}
+        // handle the ctrl+c event separately
 		if key.Matches(msg, exitKey) {
 			fmt.Println("\nTimer got interrupted by user...")
             os.Exit(1)
@@ -101,9 +102,10 @@ var (
 		key.WithKeys("q", "esc"),
 		key.WithHelp("q", "quit"),
 	)
+    // handle the ctrl+c event separately
 	exitKey = key.NewBinding(
 		key.WithKeys("ctrl+c"),
-		key.WithHelp("ctrl+c", "exit with status 1"),
+		key.WithHelp("ctrl+c", "interrupt"),
 	)
 	boldStyle   = lipgloss.NewStyle().Bold(true)
 	italicStyle = lipgloss.NewStyle().Italic(true)
@@ -113,46 +115,6 @@ const (
 	padding  = 2
 	maxWidth = 80
 )
-
-// // NOTE: hate to add so much code but I didn't find an other way for now
-// func (p *tea.Program) customHandleSignals() chan struct{} {
-// 	ch := make(chan struct{})
-//
-// 	// Listen for SIGINT and SIGTERM.
-// 	//
-// 	// In most cases ^C will not send an interrupt because the terminal will be
-// 	// in raw mode and ^C will be captured as a keystroke and sent along to
-// 	// Program.Update as a KeyMsg. When input is not a TTY, however, ^C will be
-// 	// caught here.
-// 	//
-// 	// SIGTERM is sent by unix utilities (like kill) to terminate a process.
-// 	go func() {
-// 		sig := make(chan os.Signal, 1)
-// 		signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-// 		defer func() {
-// 			signal.Stop(sig)
-// 			close(ch)
-// 		}()
-//
-// 		for {
-// 			select {
-// 			case <-p.ctx.Done():
-// 				return
-//
-// 			case <-sig:
-// 				if !p.ignoreSignals {
-//                     // that is how it was
-// 					// p.msgs <- quitMsg{}
-// 					// return
-//                     // that is what if done to exit with status 1
-//                     os.Exit(1)
-// 				}
-// 			}
-// 		}
-// 	}()
-//
-// 	return ch
-// }
 
 var rootCmd = &coral.Command{
 	Use:          "timer",
@@ -174,7 +136,7 @@ var rootCmd = &coral.Command{
 			start:    time.Now(),
 		}
         // the default handler exits with 0
-        // without it exits with 1
+        // without the default handler it exits with 1
         p := tea.NewProgram(m, tea.WithoutSignalHandler())
         return p.Start()
 	},
