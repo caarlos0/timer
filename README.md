@@ -1,7 +1,11 @@
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/245435/154816573-b0fa49a2-5e5a-49ed-b65e-a12915dfc68b.gif" alt="timer running" height="300" />
-  <h1 align="center">timer</h1>
-  <p align="center">A <code>sleep</code> with progress.</p>
+	<img src="https://vhs.charm.sh/vhs-58WhWBetEsOILPgMBGCDny.gif" alt="Made with VHS">
+	<a href="https://vhs.charm.sh">
+		<img src="https://stuff.charm.sh/vhs/badge.svg">
+	</a>
+	<br>
+	<h1 align="center">timer</h1>
+	<p align="center">A <code>sleep</code> with progress.</p>
 </p>
 
 ---
