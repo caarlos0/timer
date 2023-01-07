@@ -130,6 +130,10 @@ var rootCmd = &cobra.Command{
 		if m.(model).interrupting {
 			return fmt.Errorf("interrupted")
 		}
+		if name != "" {
+			cmd.Printf("%s ", name)
+		}
+		cmd.Printf("finished!\n")
 		return nil
 	},
 }
