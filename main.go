@@ -17,12 +17,13 @@ import (
 )
 
 type model struct {
-	name     string
-	duration time.Duration
-	start    time.Time
-	timer    timer.Model
-	progress progress.Model
-	quitting bool
+	name         string
+	duration     time.Duration
+	start        time.Time
+	timer        timer.Model
+	progress     progress.Model
+	quitting     bool
+	interrupting bool
 }
 
 func (m model) Init() tea.Cmd {
@@ -36,11 +37,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 
 		step := 100.0 / (m.duration).Seconds()
-
 		cmds = append(cmds, m.progress.IncrPercent(step/100.0))
-		// pm, cmd := m.progress.Update(msg)
-		// cmds = append(cmds, cmd)
-		// m.progress = pm.(progress.Model)
 
 		m.timer, cmd = m.timer.Update(msg)
 		cmds = append(cmds, cmd)
@@ -72,13 +69,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		}
+		if key.Matches(msg, intKeys) {
+			m.interrupting = true
+			return m, tea.Quit
+		}
 	}
 
 	return m, nil
 }
 
 func (m model) View() string {
-	if m.quitting {
+	if m.quitting || m.interrupting {
 		return "\n"
 	}
 
@@ -91,12 +92,10 @@ func (m model) View() string {
 }
 
 var (
-	name     string
-	version  = "dev"
-	quitKeys = key.NewBinding(
-		key.WithKeys("q", "ctrl+c"),
-		key.WithHelp("q", "quit"),
-	)
+	name        string
+	version     = "dev"
+	quitKeys    = key.NewBinding(key.WithKeys("esc", "q"))
+	intKeys     = key.NewBinding(key.WithKeys("ctrl+c"))
 	boldStyle   = lipgloss.NewStyle().Bold(true)
 	italicStyle = lipgloss.NewStyle().Italic(true)
 )
@@ -118,14 +117,20 @@ var rootCmd = &coral.Command{
 		if err != nil {
 			return err
 		}
-		m := model{
+		m, err := tea.NewProgram(model{
 			duration: duration,
 			timer:    timer.NewWithInterval(duration, time.Second),
 			progress: progress.New(progress.WithDefaultGradient()),
 			name:     name,
 			start:    time.Now(),
+		}).Run()
+		if err != nil {
+			return err
 		}
-		return tea.NewProgram(m).Start()
+		if m.(model).interrupting {
+			return fmt.Errorf("interrupted")
+		}
+		return nil
 	},
 }
 
