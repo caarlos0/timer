@@ -11,9 +11,9 @@ import (
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/coral"
-	mcoral "github.com/muesli/mango-coral"
+	mcobra "github.com/muesli/mango-cobra"
 	"github.com/muesli/roff"
+	"github.com/spf13/cobra"
 )
 
 type model struct {
@@ -105,13 +105,13 @@ const (
 	maxWidth = 80
 )
 
-var rootCmd = &coral.Command{
+var rootCmd = &cobra.Command{
 	Use:          "timer",
 	Short:        "timer is like sleep, but with progress report",
 	Version:      version,
 	SilenceUsage: true,
-	Args:         coral.ExactArgs(1),
-	RunE: func(cmd *coral.Command, args []string) error {
+	Args:         cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
 		addSuffixIfArgIsNumber(&(args[0]), "s")
 		duration, err := time.ParseDuration(args[0])
 		if err != nil {
@@ -134,15 +134,15 @@ var rootCmd = &coral.Command{
 	},
 }
 
-var manCmd = &coral.Command{
+var manCmd = &cobra.Command{
 	Use:                   "man",
 	Short:                 "Generates man pages",
 	SilenceUsage:          true,
 	DisableFlagsInUseLine: true,
 	Hidden:                true,
-	Args:                  coral.NoArgs,
-	RunE: func(cmd *coral.Command, args []string) error {
-		manPage, err := mcoral.NewManPage(1, rootCmd)
+	Args:                  cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		manPage, err := mcobra.NewManPage(1, rootCmd)
 		if err != nil {
 			return err
 		}
