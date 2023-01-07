@@ -18,6 +18,7 @@ import (
 
 type model struct {
 	name         string
+	altscreen    bool
 	duration     time.Duration
 	start        time.Time
 	timer        timer.Model
@@ -45,7 +46,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		m.progress.Width = msg.Width - padding*2 - 4
-		if m.progress.Width > maxWidth {
+		if !m.altscreen && m.progress.Width > maxWidth {
 			m.progress.Width = maxWidth
 		}
 		return m, nil
@@ -93,6 +94,7 @@ func (m model) View() string {
 
 var (
 	name        string
+	altscreen   bool
 	version     = "dev"
 	quitKeys    = key.NewBinding(key.WithKeys("esc", "q"))
 	intKeys     = key.NewBinding(key.WithKeys("ctrl+c"))
@@ -117,13 +119,18 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		var opts []tea.ProgramOption
+		if altscreen {
+			opts = append(opts, tea.WithAltScreen())
+		}
 		m, err := tea.NewProgram(model{
-			duration: duration,
-			timer:    timer.NewWithInterval(duration, time.Second),
-			progress: progress.New(progress.WithDefaultGradient()),
-			name:     name,
-			start:    time.Now(),
-		}).Run()
+			duration:  duration,
+			timer:     timer.NewWithInterval(duration, time.Second),
+			progress:  progress.New(progress.WithDefaultGradient()),
+			name:      name,
+			altscreen: altscreen,
+			start:     time.Now(),
+		}, opts...).Run()
 		if err != nil {
 			return err
 		}
@@ -158,6 +165,7 @@ var manCmd = &cobra.Command{
 
 func init() {
 	rootCmd.Flags().StringVarP(&name, "name", "n", "", "timer name")
+	rootCmd.Flags().BoolVarP(&altscreen, "fullscreen", "f", false, "fullscreen")
 
 	rootCmd.AddCommand(manCmd)
 }
