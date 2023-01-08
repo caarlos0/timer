@@ -44,6 +44,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(cmds...)
 
 	case tea.WindowSizeMsg:
+		termWidth, termHeight = msg.Width, msg.Height
 		m.progress.Width = msg.Width - padding*2 - 4
 		if m.progress.Width > maxWidth {
 			m.progress.Width = maxWidth
@@ -88,11 +89,20 @@ func (m model) View() string {
 		result += ": " + italicStyle.Render(m.name)
 	}
 	result += " - " + boldStyle.Render(m.timer.View()) + "\n" + m.progress.View()
+	if *altscreen {
+		textWidth, textHeight := lipgloss.Size(result)
+		marginWidth := (termWidth - textWidth) / 2
+		marginHeight := (termHeight - textHeight) / 2
+		return lipgloss.NewStyle().Margin(marginHeight, marginWidth).Render(result)
+	}
 	return result
 }
 
 var (
 	name        string
+	altscreen   *bool
+	termWidth   int
+	termHeight  int
 	version     = "dev"
 	quitKeys    = key.NewBinding(key.WithKeys("esc", "q"))
 	intKeys     = key.NewBinding(key.WithKeys("ctrl+c"))
@@ -117,16 +127,22 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		m, err := tea.NewProgram(model{
-			duration: duration,
-			timer:    timer.NewWithInterval(duration, time.Second),
-			progress: progress.New(progress.WithDefaultGradient()),
-			name:     name,
-			start:    time.Now(),
-		}).Run()
-		if err != nil {
-			return err
+		var (
+			initModel tea.Model = model{
+				duration: duration,
+				timer:    timer.NewWithInterval(duration, time.Second),
+				progress: progress.New(progress.WithDefaultGradient()),
+				name:     name,
+				start:    time.Now(),
+			}
+			m tea.Model
+		)
+		if *altscreen {
+			m, err = tea.NewProgram(initModel, tea.WithAltScreen()).Run()
+		} else {
+			m, err = tea.NewProgram(initModel).Run()
 		}
+
 		if m.(model).interrupting {
 			return fmt.Errorf("interrupted")
 		}
@@ -158,6 +174,7 @@ var manCmd = &cobra.Command{
 
 func init() {
 	rootCmd.Flags().StringVarP(&name, "name", "n", "", "timer name")
+	altscreen = rootCmd.Flags().BoolP("alt-screen", "a", false, "start in alt-screen")
 
 	rootCmd.AddCommand(manCmd)
 }
