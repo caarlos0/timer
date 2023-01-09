@@ -46,6 +46,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		m.progress.Width = msg.Width - padding*2 - 4
+		winHeight, winWidth = msg.Height, msg.Width
 		if !m.altscreen && m.progress.Width > maxWidth {
 			m.progress.Width = maxWidth
 		}
@@ -89,17 +90,22 @@ func (m model) View() string {
 		result += ": " + italicStyle.Render(m.name)
 	}
 	result += " - " + boldStyle.Render(m.timer.View()) + "\n" + m.progress.View()
+	if m.altscreen {
+		textWidth, textHeight := lipgloss.Size(result)
+		return lipgloss.NewStyle().Margin((winHeight-textHeight)/2, (winWidth-textWidth)/2).Render(result)
+	}
 	return result
 }
 
 var (
-	name        string
-	altscreen   bool
-	version     = "dev"
-	quitKeys    = key.NewBinding(key.WithKeys("esc", "q"))
-	intKeys     = key.NewBinding(key.WithKeys("ctrl+c"))
-	boldStyle   = lipgloss.NewStyle().Bold(true)
-	italicStyle = lipgloss.NewStyle().Italic(true)
+	name                string
+	altscreen           bool
+	winHeight, winWidth int
+	version             = "dev"
+	quitKeys            = key.NewBinding(key.WithKeys("esc", "q"))
+	intKeys             = key.NewBinding(key.WithKeys("ctrl+c"))
+	boldStyle           = lipgloss.NewStyle().Bold(true)
+	italicStyle         = lipgloss.NewStyle().Italic(true)
 )
 
 const (
