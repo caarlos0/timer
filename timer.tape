@@ -6,4 +6,4 @@ Set Height 300
 
 Type "timer 5s -n Demo"
 Enter
-Sleep 6s
+Sleep 10s
