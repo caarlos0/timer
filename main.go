@@ -18,6 +18,7 @@ import (
 
 type model struct {
 	name         string
+	altscreen    bool
 	duration     time.Duration
 	start        time.Time
 	timer        timer.Model
@@ -45,7 +46,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		m.progress.Width = msg.Width - padding*2 - 4
-		if m.progress.Width > maxWidth {
+		winHeight, winWidth = msg.Height, msg.Width
+		if !m.altscreen && m.progress.Width > maxWidth {
 			m.progress.Width = maxWidth
 		}
 		return m, nil
@@ -88,16 +90,22 @@ func (m model) View() string {
 		result += ": " + italicStyle.Render(m.name)
 	}
 	result += " - " + boldStyle.Render(m.timer.View()) + "\n" + m.progress.View()
+	if m.altscreen {
+		textWidth, textHeight := lipgloss.Size(result)
+		return lipgloss.NewStyle().Margin((winHeight-textHeight)/2, (winWidth-textWidth)/2).Render(result)
+	}
 	return result
 }
 
 var (
-	name        string
-	version     = "dev"
-	quitKeys    = key.NewBinding(key.WithKeys("esc", "q"))
-	intKeys     = key.NewBinding(key.WithKeys("ctrl+c"))
-	boldStyle   = lipgloss.NewStyle().Bold(true)
-	italicStyle = lipgloss.NewStyle().Italic(true)
+	name                string
+	altscreen           bool
+	winHeight, winWidth int
+	version             = "dev"
+	quitKeys            = key.NewBinding(key.WithKeys("esc", "q"))
+	intKeys             = key.NewBinding(key.WithKeys("ctrl+c"))
+	boldStyle           = lipgloss.NewStyle().Bold(true)
+	italicStyle         = lipgloss.NewStyle().Italic(true)
 )
 
 const (
@@ -117,13 +125,18 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		var opts []tea.ProgramOption
+		if altscreen {
+			opts = append(opts, tea.WithAltScreen())
+		}
 		m, err := tea.NewProgram(model{
-			duration: duration,
-			timer:    timer.NewWithInterval(duration, time.Second),
-			progress: progress.New(progress.WithDefaultGradient()),
-			name:     name,
-			start:    time.Now(),
-		}).Run()
+			duration:  duration,
+			timer:     timer.NewWithInterval(duration, time.Second),
+			progress:  progress.New(progress.WithDefaultGradient()),
+			name:      name,
+			altscreen: altscreen,
+			start:     time.Now(),
+		}, opts...).Run()
 		if err != nil {
 			return err
 		}
@@ -158,6 +171,7 @@ var manCmd = &cobra.Command{
 
 func init() {
 	rootCmd.Flags().StringVarP(&name, "name", "n", "", "timer name")
+	rootCmd.Flags().BoolVarP(&altscreen, "fullscreen", "f", false, "fullscreen")
 
 	rootCmd.AddCommand(manCmd)
 }
