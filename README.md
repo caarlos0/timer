@@ -92,7 +92,7 @@ Download the pre-compiled binaries from the [releases page][releases] or clone t
 
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](LICENSE.md)
 
-[![Build](https://img.shields.io/github/workflow/status/caarlos0/timer/build?style=for-the-badge)](https://github.com/caarlos0/timer/actions?query=workflow%3Abuild)
+[![Build](https://img.shields.io/github/actions/workflow/status/caarlos0/timer/build.yml?style=for-the-badge)](https://github.com/caarlos0/timer/actions?query=workflow%3Abuild)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/caarlos0/timer?style=for-the-badge)](https://goreportcard.com/report/github.com/caarlos0/timer)
 
