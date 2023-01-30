@@ -3,3 +3,4 @@ manpages/
 completions/
 timer.exe
 dist
+.vscode
