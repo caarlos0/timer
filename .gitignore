@@ -4,3 +4,5 @@ completions/
 timer.exe
 dist
 .vscode
+timer
+out.gif

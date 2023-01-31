@@ -20,7 +20,6 @@ type model struct {
 	name         string
 	altscreen    bool
 	duration     time.Duration
-	start        time.Time
 	timer        timer.Model
 	progress     progress.Model
 	quitting     bool
@@ -85,11 +84,7 @@ func (m model) View() string {
 		return "\n"
 	}
 
-	result := boldStyle.Render(m.start.Format(time.Kitchen))
-	if m.name != "" {
-		result += ": " + italicStyle.Render(m.name)
-	}
-	result += " - " + boldStyle.Render(m.timer.View()) + "\n" + m.progress.View()
+	result := m.progress.View()
 	if m.altscreen {
 		textWidth, textHeight := lipgloss.Size(result)
 		return lipgloss.NewStyle().Margin((winHeight-textHeight)/2, (winWidth-textWidth)/2).Render(result)
@@ -135,7 +130,6 @@ var rootCmd = &cobra.Command{
 			progress:  progress.New(progress.WithDefaultGradient()),
 			name:      name,
 			altscreen: altscreen,
-			start:     time.Now(),
 		}, opts...).Run()
 		if err != nil {
 			return err
@@ -146,7 +140,6 @@ var rootCmd = &cobra.Command{
 		if name != "" {
 			cmd.Printf("%s ", name)
 		}
-		cmd.Printf("finished!\n")
 		return nil
 	},
 }

@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="https://vhs.charm.sh/vhs-1q9uo4hkLStOL4UHZFfQ4W.gif" alt="Made with VHS">
+	<img src="https://vhs.charm.sh/vhs-3JUif7gjSs5lL43g5X4LzS.gif" alt="Made with VHS">
 	<a href="https://vhs.charm.sh">
 		<img src="https://stuff.charm.sh/vhs/badge.svg">
 	</a>
