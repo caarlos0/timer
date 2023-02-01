@@ -20,6 +20,7 @@ type model struct {
 	name         string
 	altscreen    bool
 	duration     time.Duration
+	passed       time.Duration
 	start        time.Time
 	timer        timer.Model
 	progress     progress.Model
@@ -37,8 +38,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmds []tea.Cmd
 		var cmd tea.Cmd
 
-		step := 100.0 / (m.duration).Seconds()
-		cmds = append(cmds, m.progress.IncrPercent(step/100.0))
+		m.passed += m.timer.Interval
+		pct := m.passed.Milliseconds() * 100 / m.duration.Milliseconds()
+		cmds = append(cmds, m.progress.SetPercent(float64(pct)/100))
 
 		m.timer, cmd = m.timer.Update(msg)
 		cmds = append(cmds, cmd)
@@ -129,9 +131,13 @@ var rootCmd = &cobra.Command{
 		if altscreen {
 			opts = append(opts, tea.WithAltScreen())
 		}
+		interval := time.Second
+		if duration < time.Minute {
+			interval = 100 * time.Millisecond
+		}
 		m, err := tea.NewProgram(model{
 			duration:  duration,
-			timer:     timer.NewWithInterval(duration, time.Second),
+			timer:     timer.NewWithInterval(duration, interval),
 			progress:  progress.New(progress.WithDefaultGradient()),
 			name:      name,
 			altscreen: altscreen,
