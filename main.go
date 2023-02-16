@@ -77,6 +77,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.interrupting = true
 			return m, tea.Quit
 		}
+		if key.Matches(msg, pauseKeys) {
+			return m, m.timer.Toggle()
+		}
 	}
 
 	return m, nil
@@ -106,6 +109,7 @@ var (
 	version             = "dev"
 	quitKeys            = key.NewBinding(key.WithKeys("esc", "q"))
 	intKeys             = key.NewBinding(key.WithKeys("ctrl+c"))
+	pauseKeys           = key.NewBinding(key.WithKeys(" "))
 	boldStyle           = lipgloss.NewStyle().Bold(true)
 	italicStyle         = lipgloss.NewStyle().Italic(true)
 )
