@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -17,15 +18,16 @@ import (
 )
 
 type model struct {
-	name         string
-	altscreen    bool
-	duration     time.Duration
-	passed       time.Duration
-	start        time.Time
-	timer        timer.Model
-	progress     progress.Model
-	quitting     bool
-	interrupting bool
+	name            string
+	altscreen       bool
+	startTimeFormat string
+	duration        time.Duration
+	passed          time.Duration
+	start           time.Time
+	timer           timer.Model
+	progress        progress.Model
+	quitting        bool
+	interrupting    bool
 }
 
 func (m model) Init() tea.Cmd {
@@ -87,7 +89,14 @@ func (m model) View() string {
 		return "\n"
 	}
 
-	result := boldStyle.Render(m.start.Format(time.Kitchen))
+	var startTimeFormat string
+	switch strings.ToLower(m.startTimeFormat) {
+	case "24h":
+		startTimeFormat = "15:04" // See: https://golang.cafe/blog/golang-time-format-example.html
+	default:
+		startTimeFormat = time.Kitchen
+	}
+	result := boldStyle.Render(m.start.Format(startTimeFormat))
 	if m.name != "" {
 		result += ": " + italicStyle.Render(m.name)
 	}
@@ -102,6 +111,7 @@ func (m model) View() string {
 var (
 	name                string
 	altscreen           bool
+	startTimeFormat     string
 	winHeight, winWidth int
 	version             = "dev"
 	quitKeys            = key.NewBinding(key.WithKeys("esc", "q"))
@@ -136,12 +146,13 @@ var rootCmd = &cobra.Command{
 			interval = 100 * time.Millisecond
 		}
 		m, err := tea.NewProgram(model{
-			duration:  duration,
-			timer:     timer.NewWithInterval(duration, interval),
-			progress:  progress.New(progress.WithDefaultGradient()),
-			name:      name,
-			altscreen: altscreen,
-			start:     time.Now(),
+			duration:        duration,
+			timer:           timer.NewWithInterval(duration, interval),
+			progress:        progress.New(progress.WithDefaultGradient()),
+			name:            name,
+			altscreen:       altscreen,
+			startTimeFormat: startTimeFormat,
+			start:           time.Now(),
 		}, opts...).Run()
 		if err != nil {
 			return err
@@ -178,6 +189,7 @@ var manCmd = &cobra.Command{
 func init() {
 	rootCmd.Flags().StringVarP(&name, "name", "n", "", "timer name")
 	rootCmd.Flags().BoolVarP(&altscreen, "fullscreen", "f", false, "fullscreen")
+	rootCmd.Flags().StringVarP(&startTimeFormat, "format", "", "", "Specify start time format, possible values: 24h, kitchen")
 
 	rootCmd.AddCommand(manCmd)
 }
