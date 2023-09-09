@@ -31,6 +31,15 @@ It is possible to pass a time unit for `<duration>`.
 Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
 If no unit is passed, it defaults to seconds ("s").
 
+If you want to show the start time in 24-hour format, use `--format 24h`. For
+example:
+```sh
+timer 5s --format 24h -n Demo
+```
+Currently, the two formats supported by the `--format` option are:
+- `kitchen`: the default, example: `9:16PM`.
+- `24h`: 24-hour time format, example: `21:16`.
+
 ## Install
 
 **homebrew**:
@@ -97,4 +106,3 @@ Download the pre-compiled binaries from the [releases page][releases] or clone t
 [![Go Report Card](https://goreportcard.com/badge/github.com/caarlos0/timer?style=for-the-badge)](https://goreportcard.com/report/github.com/caarlos0/timer)
 
 [![Powered By: GoReleaser](https://img.shields.io/badge/powered%20by-goreleaser-green.svg?style=for-the-badge)](https://github.com/goreleaser)
-
