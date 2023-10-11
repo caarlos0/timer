@@ -175,7 +175,7 @@ var manCmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	Hidden:                true,
 	Args:                  cobra.NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		manPage, err := mcobra.NewManPage(1, rootCmd)
 		if err != nil {
 			return err
