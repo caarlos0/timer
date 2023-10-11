@@ -23,6 +23,9 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: stable
+      - uses: cachix/install-nix-action@v23
+        with:
+          github_access_token: ${{ secrets.GH_PAT }}
       - name: test
         run: |
           go mod tidy
