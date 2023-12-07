@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: stable
       - uses: cachix/install-nix-action@v24
