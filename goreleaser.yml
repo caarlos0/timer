@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
+version: 2
 variables:
   homepage: https://github.com/caarlos0/timer
   repository: https://github.com/caarlos0/timer
@@ -13,4 +15,4 @@ includes:
       url: https://raw.githubusercontent.com/caarlos0/goreleaserfiles/main/cosign_checksum.yml
 
 furies:
-- account: caarlos0
+  - account: caarlos0

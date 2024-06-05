@@ -3,15 +3,15 @@ name: build
 on:
   push:
     branches:
-      - 'main'
+      - "main"
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
 
 permissions:
-   contents: write
-   id-token: write
-   packages: write
+  contents: write
+  id-token: write
+  packages: write
 
 jobs:
   build:
@@ -37,7 +37,6 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
