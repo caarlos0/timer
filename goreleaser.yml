@@ -8,6 +8,8 @@ includes:
   - from_url:
       url: https://raw.githubusercontent.com/caarlos0/.goreleaserfiles/main/build.yml
   - from_url:
+      url: https://raw.githubusercontent.com/caarlos0/goreleaserfiles/main/windows.yml
+  - from_url:
       url: https://raw.githubusercontent.com/caarlos0/.goreleaserfiles/main/package_with_completions_and_manpages.yml
   - from_url:
       url: https://raw.githubusercontent.com/caarlos0/.goreleaserfiles/main/release.yml
@@ -16,3 +18,13 @@ includes:
 
 furies:
   - account: caarlos0
+
+snapcrafts:
+  - publish: true
+    summary: "{{.Var.description}}"
+    grade: stable
+    license: MIT
+    confinement: strict
+    apps:
+      org-stats:
+        command: timer
