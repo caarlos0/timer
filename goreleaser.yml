@@ -4,6 +4,7 @@ variables:
   homepage: https://github.com/caarlos0/timer
   repository: https://github.com/caarlos0/timer
   description: Timer is like sleep, but reports progress.
+
 includes:
   - from_url:
       url: https://raw.githubusercontent.com/caarlos0/.goreleaserfiles/main/build.yml
@@ -22,6 +23,7 @@ furies:
 snapcrafts:
   - publish: true
     summary: "{{.Var.description}}"
+    description: "{{.Var.description}}"
     grade: stable
     license: MIT
     confinement: strict
