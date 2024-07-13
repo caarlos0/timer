@@ -21,7 +21,7 @@ furies:
   - account: caarlos0
 
 snapcrafts:
-  - publish: true
+  - publish: false
     summary: "{{.Var.description}}"
     description: "{{.Var.description}}"
     grade: stable
