@@ -41,6 +41,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: nightly
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
