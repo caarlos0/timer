@@ -86,7 +86,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	if m.quitting || m.interrupting {
-		return "\n"
+		return ""
 	}
 
 	var startTimeFormat string
@@ -102,8 +102,9 @@ func (m model) View() string {
 	}
 	result += " - " + boldStyle.Render(m.timer.View()) + "\n" + m.progress.View()
 	if m.altscreen {
-		textWidth, textHeight := lipgloss.Size(result)
-		return lipgloss.NewStyle().Margin((winHeight-textHeight)/2, (winWidth-textWidth)/2).Render(result)
+		return altscreenStyle.
+			MarginTop((winHeight - 2) / 2).
+			Render(result)
 	}
 	return result
 }
@@ -116,6 +117,7 @@ var (
 	version             = "dev"
 	quitKeys            = key.NewBinding(key.WithKeys("esc", "q"))
 	intKeys             = key.NewBinding(key.WithKeys("ctrl+c"))
+	altscreenStyle      = lipgloss.NewStyle().MarginLeft(padding)
 	boldStyle           = lipgloss.NewStyle().Bold(true)
 	italicStyle         = lipgloss.NewStyle().Italic(true)
 )
