@@ -31,7 +31,7 @@ jobs:
           go mod tidy
           go test -v ./...
           go build -o timer .
-      - uses: sigstore/cosign-installer@v3.5.0
+      - uses: sigstore/cosign-installer@v3.6.0
       - name: setup-snapcraft
         run: |
           sudo apt-get update
