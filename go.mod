@@ -3,7 +3,7 @@ module github.com/caarlos0/timer
 go 1.21
 
 require (
-	github.com/charmbracelet/bubbles v0.19.0
+	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.0
 	github.com/charmbracelet/lipgloss v0.13.0
 	github.com/muesli/mango-cobra v1.2.0
