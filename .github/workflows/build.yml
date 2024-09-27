@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: stable
-      - uses: cachix/install-nix-action@V28
+      - uses: cachix/install-nix-action@v29
         with:
           github_access_token: ${{ secrets.GH_PAT }}
       - name: test
