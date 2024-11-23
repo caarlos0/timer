@@ -7,13 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/progress"
-	"github.com/charmbracelet/bubbles/timer"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	mcobra "github.com/muesli/mango-cobra"
-	"github.com/muesli/roff"
+	"github.com/charmbracelet/bubbles/v2/key"
+	"github.com/charmbracelet/bubbles/v2/progress"
+	"github.com/charmbracelet/bubbles/v2/timer"
+	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/charmbracelet/serpentine"
 	"github.com/spf13/cobra"
 )
 
@@ -30,8 +29,9 @@ type model struct {
 	interrupting    bool
 }
 
-func (m model) Init() tea.Cmd {
-	return m.timer.Init()
+func (m model) Init() (tea.Model, tea.Cmd) {
+	_, cmd := m.timer.Init()
+	return m, cmd
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -49,10 +49,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(cmds...)
 
 	case tea.WindowSizeMsg:
-		m.progress.Width = msg.Width - padding*2 - 4
+		m.progress.SetWidth(msg.Width - padding*2 - 4)
 		winHeight, winWidth = msg.Height, msg.Width
-		if !m.altscreen && m.progress.Width > maxWidth {
-			m.progress.Width = maxWidth
+		if !m.altscreen && m.progress.Width() > maxWidth {
+			m.progress.SetWidth(maxWidth)
 		}
 		return m, nil
 
@@ -149,7 +149,7 @@ var rootCmd = &cobra.Command{
 		}
 		m, err := tea.NewProgram(model{
 			duration:        duration,
-			timer:           timer.NewWithInterval(duration, interval),
+			timer:           timer.New(duration, timer.WithInterval(interval)),
 			progress:        progress.New(progress.WithDefaultGradient()),
 			name:            name,
 			altscreen:       altscreen,
@@ -170,33 +170,14 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-var manCmd = &cobra.Command{
-	Use:                   "man",
-	Short:                 "Generates man pages",
-	SilenceUsage:          true,
-	DisableFlagsInUseLine: true,
-	Hidden:                true,
-	Args:                  cobra.NoArgs,
-	RunE: func(_ *cobra.Command, _ []string) error {
-		manPage, err := mcobra.NewManPage(1, rootCmd)
-		if err != nil {
-			return err
-		}
-
-		_, err = fmt.Fprint(os.Stdout, manPage.Build(roff.NewDocument()))
-		return err
-	},
-}
-
 func init() {
 	rootCmd.Flags().StringVarP(&name, "name", "n", "", "timer name")
 	rootCmd.Flags().BoolVarP(&altscreen, "fullscreen", "f", false, "fullscreen")
 	rootCmd.Flags().StringVarP(&startTimeFormat, "format", "", "", "Specify start time format, possible values: 24h, kitchen")
-
-	rootCmd.AddCommand(manCmd)
 }
 
 func main() {
+	serpentine.Setup(rootCmd)
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
