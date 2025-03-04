@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/progress"
-	"github.com/charmbracelet/bubbles/timer"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/bubbles/v2/key"
+	"github.com/charmbracelet/bubbles/v2/progress"
+	"github.com/charmbracelet/bubbles/v2/timer"
+	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/charmbracelet/lipgloss/v2"
 	mcobra "github.com/muesli/mango-cobra"
 	"github.com/muesli/roff"
 	"github.com/spf13/cobra"
@@ -49,10 +49,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(cmds...)
 
 	case tea.WindowSizeMsg:
-		m.progress.Width = msg.Width - padding*2 - 4
+		m.progress.SetWidth(msg.Width - padding*2 - 4)
 		winHeight, winWidth = msg.Height, msg.Width
-		if !m.altscreen && m.progress.Width > maxWidth {
-			m.progress.Width = maxWidth
+		if !m.altscreen && m.progress.Width() > maxWidth {
+			m.progress.SetWidth(maxWidth)
 		}
 		return m, nil
 
@@ -66,8 +66,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 
 	case progress.FrameMsg:
-		progressModel, cmd := m.progress.Update(msg)
-		m.progress = progressModel.(progress.Model)
+		var cmd tea.Cmd
+		m.progress, cmd = m.progress.Update(msg)
 		return m, cmd
 
 	case tea.KeyMsg:
@@ -149,7 +149,7 @@ var rootCmd = &cobra.Command{
 		}
 		m, err := tea.NewProgram(model{
 			duration:        duration,
-			timer:           timer.NewWithInterval(duration, interval),
+			timer:           timer.New(duration, timer.WithInterval(interval)),
 			progress:        progress.New(progress.WithDefaultGradient()),
 			name:            name,
 			altscreen:       altscreen,
