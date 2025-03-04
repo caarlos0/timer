@@ -32,10 +32,7 @@ jobs:
           go test -v ./...
           go build -o timer .
       - uses: sigstore/cosign-installer@v3.7.0
-      - name: setup-snapcraft
-        run: |
-          sudo apt-get update
-          sudo apt-get -yq --no-install-suggests --no-install-recommends install snapcraft
+      - uses: samuelmeuli/action-snapcraft@v3
       - uses: goreleaser/goreleaser-action@v6
         if: success() && startsWith(github.ref, 'refs/tags/')
         with:
