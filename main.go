@@ -120,7 +120,16 @@ var (
 	altscreenStyle  = lipgloss.NewStyle().MarginLeft(padding)
 	boldStyle       = lipgloss.NewStyle().Bold(true)
 	italicStyle     = lipgloss.NewStyle().Italic(true)
+	gradientFlag    string
 )
+
+var gradientPresets = map[string][2]string{
+	"default": {"#5A56E0", "#EE6FF8"},
+	"sunset":  {"#FFB28C", "#FFC371"},
+	"aqua":    {"#13547A", "#80D0C7"},
+	"forest":  {"#5A3F37", "#2C7744"},
+	"fire":    {"#F7971E", "#FFD200"},
+}
 
 const (
 	padding  = 2
@@ -147,10 +156,26 @@ var rootCmd = &cobra.Command{
 		if duration < time.Minute {
 			interval = 100 * time.Millisecond
 		}
+
+		// choose the gradient based on the flag
+		// if the flag is empty or "default", use the default gradient
+		var progressBar progress.Model
+		if gradientFlag == "" || gradientFlag == "default" {
+			progressBar = progress.New(progress.WithDefaultGradient())
+		} else if preset, ok := gradientPresets[gradientFlag]; ok {
+			progressBar = progress.New(progress.WithGradient(preset[0], preset[1]))
+		} else if strings.Contains(gradientFlag, ",") {
+			parts := strings.SplitN(gradientFlag, ",", 2)
+			progressBar = progress.New(progress.WithGradient(parts[0], parts[1]))
+		} else {
+			// fallback to default gradient if invalid input
+			progressBar = progress.New(progress.WithDefaultGradient())
+		}
+
 		m, err := tea.NewProgram(model{
 			duration:        duration,
 			timer:           timer.New(duration, timer.WithInterval(interval)),
-			progress:        progress.New(progress.WithDefaultGradient()),
+			progress:        progressBar,
 			name:            name,
 			altscreen:       altscreen,
 			startTimeFormat: startTimeFormat,
@@ -192,6 +217,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&name, "name", "n", "", "timer name")
 	rootCmd.Flags().BoolVarP(&altscreen, "fullscreen", "f", false, "fullscreen")
 	rootCmd.Flags().StringVarP(&startTimeFormat, "format", "", "", "Specify start time format, possible values: 24h, kitchen")
+	rootCmd.Flags().StringVarP(&gradientFlag, "gradient", "g", "default", "Gradient preset (default, sunset, aqua, forest, fire) or two hex colors separated by comma (ex: --gradient=#00FF00,#0000FF)")
 
 	rootCmd.AddCommand(manCmd)
 }
