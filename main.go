@@ -166,7 +166,7 @@ var rootCmd = &cobra.Command{
 			progressBar = progress.New(progress.WithGradient(preset[0], preset[1]))
 		} else if strings.Contains(gradientFlag, ",") {
 			parts := strings.SplitN(gradientFlag, ",", 2)
-			progressBar = progress.New(progress.WithGradient(parts[0], parts[1]))
+			progressBar = progress.New(progress.WithGradient(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])))
 		} else {
 			// fallback to default gradient if invalid input
 			progressBar = progress.New(progress.WithDefaultGradient())
