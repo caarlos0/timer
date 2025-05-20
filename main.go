@@ -169,6 +169,7 @@ var rootCmd = &cobra.Command{
 			progressBar = progress.New(progress.WithGradient(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])))
 		} else {
 			// fallback to default gradient if invalid input
+			fmt.Printf("Warning: Invalid gradient '%s'. Falling back to default gradient.\n", gradientFlag)
 			progressBar = progress.New(progress.WithDefaultGradient())
 		}
 
