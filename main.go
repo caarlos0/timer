@@ -160,16 +160,16 @@ var rootCmd = &cobra.Command{
 		// choose the gradient based on the flag
 		// if the flag is empty or "default", use the default gradient
 		var progressBar progress.Model
-		if gradientFlag == "" || gradientFlag == "default" {
+		if gradient == "" || gradient == "default" {
 			progressBar = progress.New(progress.WithDefaultGradient())
-		} else if preset, ok := gradientPresets[gradientFlag]; ok {
+		} else if preset, ok := gradientPresets[gradient]; ok {
 			progressBar = progress.New(progress.WithGradient(preset[0], preset[1]))
-		} else if strings.Contains(gradientFlag, ",") {
-			parts := strings.SplitN(gradientFlag, ",", 2)
+		} else if strings.Contains(gradient, ",") {
+			parts := strings.SplitN(gradient, ",", 2)
 			progressBar = progress.New(progress.WithGradient(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])))
 		} else {
 			// fallback to default gradient if invalid input
-			fmt.Printf("Warning: Invalid gradient '%s'. Falling back to default gradient.\n", gradientFlag)
+			fmt.Printf("Warning: Invalid gradient '%s'. Falling back to default gradient.\n", gradient)
 			progressBar = progress.New(progress.WithDefaultGradient())
 		}
 
@@ -218,7 +218,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&name, "name", "n", "", "timer name")
 	rootCmd.Flags().BoolVarP(&altscreen, "fullscreen", "f", false, "fullscreen")
 	rootCmd.Flags().StringVarP(&startTimeFormat, "format", "", "", "Specify start time format, possible values: 24h, kitchen")
-	rootCmd.Flags().StringVarP(&gradientFlag, "gradient", "g", "default", "Gradient preset (default, sunset, aqua, forest, fire) or two hex colors separated by comma (ex: --gradient=#00FF00,#0000FF)")
+	rootCmd.Flags().StringVarP(&gradient, "gradient", "g", "default", "Gradient preset (default, sunset, aqua, forest, fire) or two hex colors separated by comma (ex: --gradient=#00FF00,#0000FF)")
 
 	rootCmd.AddCommand(manCmd)
 }
