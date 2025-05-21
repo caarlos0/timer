@@ -100,7 +100,11 @@ func (m model) View() string {
 	if m.name != "" {
 		result += ": " + italicStyle.Render(m.name)
 	}
-	result += " - " + boldStyle.Render(m.timer.View()) + "\n" + m.progress.View()
+	endTime := m.start.Add(m.duration)
+	result +=
+		" - " + boldStyle.Render(endTime.Format(startTimeFormat)) +
+			" - " + boldStyle.Render(m.timer.View()) +
+			"\n" + m.progress.View()
 	if m.altscreen {
 		return altscreenStyle.
 			MarginTop((winHeight - 2) / 2).
