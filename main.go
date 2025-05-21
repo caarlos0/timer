@@ -120,7 +120,7 @@ var (
 	altscreenStyle  = lipgloss.NewStyle().MarginLeft(padding)
 	boldStyle       = lipgloss.NewStyle().Bold(true)
 	italicStyle     = lipgloss.NewStyle().Italic(true)
-	gradientFlag    string
+	gradient        string
 )
 
 var gradientPresets = map[string][2]string{
