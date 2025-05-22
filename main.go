@@ -161,7 +161,8 @@ var rootCmd = &cobra.Command{
 		// if the flag is empty or "default", use the default gradient
 		
 		var progressBar progress.Model
-		if preset, ok := gradientPresets[gradient]; ok {
+		normalizedGradient := strings.ToLower(gradient)
+		if preset, ok := gradientPresets[normalizedGradient]; ok {
 		  progressBar = progress.New(progress.WithGradient(preset[0], preset[1]))
 		} else if strings.Contains(gradient, ",") {
 		  parts := strings.SplitN(gradient, ",", 2)
