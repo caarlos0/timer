@@ -101,9 +101,14 @@ func (m model) View() string {
 		result += ": " + italicStyle.Render(m.name)
 	}
 	endTime := m.start.Add(m.duration)
+
+	// Format remaining time with custom precision
+	remainingTime := m.duration - m.passed
+	formattedTime := formatDuration(remainingTime)
+
 	result +=
 		" - " + boldStyle.Render(endTime.Format(startTimeFormat)) +
-			" - " + boldStyle.Render(m.timer.View()) +
+			" - " + boldStyle.Render(formattedTime) +
 			"\n" + m.progress.View()
 	if m.altscreen {
 		return altscreenStyle.
@@ -117,6 +122,7 @@ var (
 	name            string
 	altscreen       bool
 	startTimeFormat string
+	targetTime      string
 	winHeight       int
 	version         = "dev"
 	quitKeys        = key.NewBinding(key.WithKeys("esc", "q"))
@@ -132,17 +138,38 @@ const (
 )
 
 var rootCmd = &cobra.Command{
-	Use:          "timer",
+	Use:          "timer [duration]",
 	Short:        "timer is like sleep, but with progress report",
+	Long:         "Timer can count down from a duration or until a specific time. Use either [duration] argument or --time flag.",
 	Version:      version,
 	SilenceUsage: true,
-	Args:         cobra.ExactArgs(1),
+	Args:         cobra.RangeArgs(0, 1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		addSuffixIfArgIsNumber(&(args[0]), "s")
-		duration, err := time.ParseDuration(args[0])
-		if err != nil {
-			return err
+		var duration time.Duration
+		var err error
+
+		if targetTime != "" {
+			// Parse target time and calculate duration
+			duration, err = calculateDurationUntilTime(targetTime)
+			if err != nil {
+				return fmt.Errorf("failed to parse target time: %w", err)
+			}
+		} else {
+			// Original behavior: parse duration from args
+			if len(args) != 1 {
+				return fmt.Errorf("duration argument is required when --time is not specified")
+			}
+			addSuffixIfArgIsNumber(&(args[0]), "s")
+			duration, err = time.ParseDuration(args[0])
+			if err != nil {
+				return err
+			}
 		}
+
+		if duration <= 0 {
+			return fmt.Errorf("duration must be positive")
+		}
+
 		var opts []tea.ProgramOption
 		if altscreen {
 			opts = append(opts, tea.WithAltScreen())
@@ -196,6 +223,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&name, "name", "n", "", "timer name")
 	rootCmd.Flags().BoolVarP(&altscreen, "fullscreen", "f", false, "fullscreen")
 	rootCmd.Flags().StringVarP(&startTimeFormat, "format", "", "", "Specify start time format, possible values: 24h, kitchen")
+	rootCmd.Flags().StringVarP(&targetTime, "time", "t", "", "timer until specific time (e.g., 14:30, 2:30PM, 02:14am)")
 
 	rootCmd.AddCommand(manCmd)
 }
@@ -206,9 +234,81 @@ func main() {
 	}
 }
 
+// addSuffixIfArgIsNumber appends a suffix to the argument if it is a number
 func addSuffixIfArgIsNumber(s *string, suffix string) {
 	_, err := strconv.ParseFloat(*s, 64)
 	if err == nil {
 		*s = *s + suffix
 	}
+}
+
+// formatDuration formats a duration with clean display and 2 decimal places for seconds
+func formatDuration(d time.Duration) string {
+	if d < 0 {
+		return "0s"
+	}
+	if d == 0 {
+		return "0s"
+	}
+
+	hours := int(d.Hours())
+	minutes := int(d.Minutes()) % 60
+	seconds := d.Seconds() - float64(hours*3600) - float64(minutes*60)
+
+	var parts []string
+
+	if hours > 0 {
+		parts = append(parts, fmt.Sprintf("%dh", hours))
+	}
+	if minutes > 0 {
+		parts = append(parts, fmt.Sprintf("%dm", minutes))
+	}
+	if seconds > 0 || len(parts) == 0 {
+		parts = append(parts, fmt.Sprintf("%.0fs", seconds))
+	}
+
+	return strings.Join(parts, "")
+}
+
+// calculateDurationUntilTime calculates the duration from now until the specified target time
+func calculateDurationUntilTime(targetTimeStr string) (time.Duration, error) {
+	now := time.Now()
+
+	// Try multiple time formats
+	timeFormats := []string{
+		"15:04",     // 24-hour format: 14:30
+		"3:04PM",    // 12-hour format with PM: 2:30PM
+		"3:04pm",    // 12-hour format with pm: 2:30pm
+		"15:04:05",  // 24-hour format with seconds: 14:30:45
+		"3:04:05PM", // 12-hour format with seconds and PM: 2:30:45PM
+		"3:04:05pm", // 12-hour format with seconds and pm: 2:30:45pm
+	}
+
+	var targetTime time.Time
+	var err error
+
+	for _, format := range timeFormats {
+		if targetTime, err = time.Parse(format, targetTimeStr); err == nil {
+			break
+		}
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("unable to parse time format. Supported formats: 15:04, 3:04PM, 3:04pm, 15:04:05, 3:04:05PM, 3:04:05pm")
+	}
+
+	// Set the target time to today
+	targetTime = time.Date(now.Year(), now.Month(), now.Day(),
+		targetTime.Hour(), targetTime.Minute(), targetTime.Second(), 0, now.Location())
+
+	// Calculate duration until target time
+	duration := targetTime.Sub(now)
+
+	// Schedule for tomorrow if the time has passed or is the exact same time
+	if duration <= 0 {
+		targetTime = targetTime.AddDate(0, 0, 1)
+		duration = targetTime.Sub(now)
+	}
+
+	return duration, nil
 }
