@@ -22,19 +22,49 @@ with a couple of extra features:
 ```sh
 timer <duration>
 timer -n <name> <duration>
+timer -t <time>
+timer -t <time> -n <name>
 man timer
 timer --help
 ```
+
+You can use the timer in two ways:
+
+1. **Duration-based timer** (original behavior): Specify how long to wait
+2. **Time-based timer** (new feature): Specify when to stop waiting
+
+### Duration-based timer
 
 It is possible to pass a time unit for `<duration>`.
 
 Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
 If no unit is passed, it defaults to seconds ("s").
 
+### Time-based timer
+
+Use the `-t` or `--time` flag to specify a target time. The timer will count down until that time is reached.
+
+Supported time formats:
+- `14:30` - 24-hour format
+- `2:30PM` or `2:30pm` - 12-hour format with AM/PM
+- `14:30:45` - 24-hour format with seconds
+- `2:30:45PM` or `2:30:45pm` - 12-hour format with seconds and AM/PM
+
+Examples:
+```sh
+timer -t 14:30        # Timer until 2:30 PM today (or tomorrow if it's already past 2:30 PM)
+timer -t 2:30PM       # Same as above, but using 12-hour format
+timer -t 02:14am      # Timer until 2:14 AM (tomorrow morning)
+timer -t 23:59:59     # Timer until 11:59:59 PM
+```
+
+If the specified time is in the past (earlier today), the timer will automatically target that time tomorrow.
+
 If you want to show the start time in 24-hour format, use `--format 24h`. For
 example:
 ```sh
 timer 5s --format 24h -n Demo
+timer -t 14:30 --format 24h -n "Until 2:30 PM"
 ```
 Currently, the two formats supported by the `--format` option are:
 - `kitchen`: the default, example: `9:16PM`.
