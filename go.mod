@@ -6,7 +6,7 @@ require (
 	github.com/charmbracelet/bubbles/v2 v2.0.0-beta.1
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta1
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta1
-	github.com/muesli/mango-cobra v1.2.0
+	github.com/muesli/mango-cobra v1.3.0
 	github.com/muesli/roff v0.1.0
 	github.com/spf13/cobra v1.10.1
 )
