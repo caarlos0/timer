@@ -8,7 +8,7 @@ require (
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta1
 	github.com/muesli/mango-cobra v1.3.0
 	github.com/muesli/roff v0.1.0
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 )
 
 require (
