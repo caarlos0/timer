@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/v2/key"
-	"github.com/charmbracelet/bubbles/v2/progress"
-	"github.com/charmbracelet/bubbles/v2/timer"
-	tea "github.com/charmbracelet/bubbletea/v2"
-	"github.com/charmbracelet/lipgloss/v2"
+	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/progress"
+	"charm.land/bubbles/v2/timer"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	mcobra "github.com/muesli/mango-cobra"
 	"github.com/muesli/roff"
 	"github.com/spf13/cobra"
@@ -84,9 +84,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) View() string {
+func (m model) View() tea.View {
 	if m.quitting || m.interrupting {
-		return ""
+		return tea.NewView("")
 	}
 
 	var startTimeFormat string
@@ -101,16 +101,18 @@ func (m model) View() string {
 		result += ": " + italicStyle.Render(m.name)
 	}
 	endTime := m.start.Add(m.duration)
-	result +=
-		" - " + boldStyle.Render(endTime.Format(startTimeFormat)) +
-			" - " + boldStyle.Render(m.timer.View()) +
-			"\n" + m.progress.View()
+	result += " - " + boldStyle.Render(endTime.Format(startTimeFormat)) +
+		" - " + boldStyle.Render(m.timer.View()) +
+		"\n" + m.progress.View()
 	if m.altscreen {
-		return altscreenStyle.
+		s := altscreenStyle.
 			MarginTop((winHeight - 2) / 2).
 			Render(result)
+		v := tea.NewView(s)
+		v.AltScreen = true
+		return v
 	}
-	return result
+	return tea.NewView(result)
 }
 
 var (
@@ -147,17 +149,17 @@ var rootCmd = &cobra.Command{
 			return fmt.Errorf("timer duration cannot be set to 0 or less")
 		}
 		var opts []tea.ProgramOption
-		if altscreen {
-			opts = append(opts, tea.WithAltScreen())
-		}
 		interval := time.Second
 		if duration < time.Minute {
 			interval = 100 * time.Millisecond
 		}
 		m, err := tea.NewProgram(model{
-			duration:        duration,
-			timer:           timer.New(duration, timer.WithInterval(interval)),
-			progress:        progress.New(progress.WithDefaultGradient()),
+			duration: duration,
+			timer:    timer.New(duration, timer.WithInterval(interval)),
+			progress: progress.New(progress.WithColors(
+				lipgloss.Color("#5A56E0"),
+				lipgloss.Color("#EE6FF8"),
+			)),
 			name:            name,
 			altscreen:       altscreen,
 			startTimeFormat: startTimeFormat,
