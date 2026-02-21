@@ -143,6 +143,9 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		if duration <= 0 {
+			return fmt.Errorf("timer duration cannot be set to 0 or less")
+		}
 		var opts []tea.ProgramOption
 		if altscreen {
 			opts = append(opts, tea.WithAltScreen())
