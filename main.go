@@ -119,6 +119,7 @@ var (
 	name            string
 	altscreen       bool
 	startTimeFormat string
+	targetTime      string
 	winHeight       int
 	version         = "dev"
 	quitKeys        = key.NewBinding(key.WithKeys("esc", "q"))
@@ -138,10 +139,26 @@ var rootCmd = &cobra.Command{
 	Short:        "timer is like sleep, but with progress report",
 	Version:      version,
 	SilenceUsage: true,
-	Args:         cobra.ExactArgs(1),
+	// Allow 0 args when -t/--time is used, otherwise require exactly 1 arg.
+	Args: func(cmd *cobra.Command, args []string) error {
+		if targetTime != "" {
+			if len(args) != 0 {
+				return fmt.Errorf("no arguments expected when --time/-t is used")
+			}
+			return nil
+		}
+		// fallback to the original exact-one-argument behavior
+		return cobra.ExactArgs(1)(cmd, args)
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		addSuffixIfArgIsNumber(&(args[0]), "s")
-		duration, err := time.ParseDuration(args[0])
+		var duration time.Duration
+		var err error
+		if targetTime != "" {
+			duration, err = durationUntilNext(targetTime)
+		} else {
+			addSuffixIfArgIsNumber(&(args[0]), "s")
+			duration, err = time.ParseDuration(args[0])
+		}
 		if err != nil {
 			return err
 		}
@@ -201,6 +218,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&name, "name", "n", "", "timer name")
 	rootCmd.Flags().BoolVarP(&altscreen, "fullscreen", "f", false, "fullscreen")
 	rootCmd.Flags().StringVarP(&startTimeFormat, "format", "", "", "Specify start time format, possible values: 24h, kitchen")
+	rootCmd.Flags().StringVarP(&targetTime, "time", "t", "", "Absolute clock time. (e.g. '8 PM', '8:30pm', '20:30')")
 
 	rootCmd.AddCommand(manCmd)
 }
@@ -216,4 +234,39 @@ func addSuffixIfArgIsNumber(s *string, suffix string) {
 	if err == nil {
 		*s = *s + suffix
 	}
+}
+
+func durationUntilNext(s string) (time.Duration, error) {
+	s = strings.ToLower(strings.TrimSpace(s))
+	now := time.Now().Truncate(time.Second)
+	loc := now.Location()
+	layouts := []string{
+		"15:04",
+		"15:04:05",
+		"3pm",
+		"3 pm",
+		"3:04pm",
+		"3:04 pm",
+		"3:04:05pm",
+		"3:04:05 pm",
+	}
+	var parsed time.Time
+	var ok bool
+	for _, layout := range layouts {
+		t, err := time.ParseInLocation(layout, s, loc)
+		if err == nil {
+			parsed = t
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return 0, fmt.Errorf("invalid time format: %q", s)
+	}
+	h, m, sec := parsed.Hour(), parsed.Minute(), parsed.Second()
+	candidate := time.Date(now.Year(), now.Month(), now.Day(), h, m, sec, 0, loc)
+	if !candidate.After(now) {
+		candidate = candidate.AddDate(0, 0, 1)
+	}
+	return candidate.Sub(now), nil
 }
